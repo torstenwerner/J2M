@@ -143,8 +143,36 @@ describe('to_markdown', () => {
         );
         markdown.should.eq('A text with blue \n lines  is not necessary.  red ');
     });
-    // it('should not recognize inserts across multiple table cells', () => {
-    //      const markdown = j2m.to_markdown('||Heading 1||Heading 2||\n|Col+A1|Col+A2|');
-    //      markdown.should.eql('\n|Heading 1|Heading 2|\n| --- | --- |\n|Col+A1|Col+A2|');
-    //  });
+    it('should convert jira table headers into markdown table syntax', () => {
+        const markdown = j2m.to_markdown('||Heading 1||Heading 2||\n|Col A1|Col A2|');
+        markdown.should.eql('\n|Heading 1|Heading 2|\n| --- | --- |\n|Col A1|Col A2|');
+    });
+    it('should normalize panels into single-column markdown tables', () => {
+        const markdown = j2m.to_markdown('{panel:title=Section}\nPanel body\n{panel}');
+        markdown.should.eql('\n| Section |\n| --- |\n| Panel body |');
+    });
+    it('should leave citations unchanged because they are unsupported', () => {
+        const markdown = j2m.to_markdown('??citation??');
+        markdown.should.eql('??citation??');
+    });
+    it('should avoid creating inserts across table cells', () => {
+        const markdown = j2m.to_markdown('||Heading 1||Heading 2||\n|Col+A1|Col+A2|');
+        markdown.should.eql('\n|Heading 1|Heading 2|\n| --- | --- |\n|Col+A1|Col+A2|');
+    });
+    it('should avoid converting issue keys into strikethrough', () => {
+        const markdown = j2m.to_markdown('Issue keys ABC-1234 and DEF-5678 should not change.');
+        markdown.should.eql('Issue keys ABC-1234 and DEF-5678 should not change.');
+    });
+    it('should preserve unmatched color opening tag', () => {
+        const markdown = j2m.to_markdown('Some text {color:red}with unmatched tag');
+        markdown.should.eql('Some text {color:red}with unmatched tag');
+    });
+    it('should convert nested ordered and unordered list mixtures', () => {
+        const markdown = j2m.to_markdown('* root\n** child\n## ordered child\n### ordered grandchild');
+        markdown.should.eql('* root\n  * child\n   1. ordered child\n      1. ordered grandchild');
+    });
+    it('should normalize noformat blocks without extra trailing newlines', () => {
+        const markdown = j2m.to_markdown('{noformat}\nline 1\nline 2\n{noformat}');
+        markdown.should.eql('```\nline 1\nline 2\n```');
+    });
 });

@@ -119,4 +119,36 @@ describe('to_jira', () => {
         const jira = j2m.to_jira(mdStr);
         jira.should.eql(jiraStr);
     });
+    it('should convert markdown tables into jira table headers', () => {
+        const jira = j2m.to_jira('|Heading 1|Heading 2|\n| --- | --- |\n|Col A1|Col A2|');
+        jira.should.eql('||Heading 1||Heading 2||\n|Col A1|Col A2|\n');
+    });
+    it('should convert single-column markdown tables into panels', () => {
+        const jira = j2m.to_jira('| A title |\n| --- |\n| Panel text |');
+        jira.should.eql('{panel:title=A title}\nPanel text\n{panel}\n');
+    });
+    it('should keep unsupported citation syntax unchanged', () => {
+        const jira = j2m.to_jira('<cite>citation</cite>');
+        jira.should.eql('<cite>citation</cite>');
+    });
+    it('should avoid converting issue keys into strikethrough', () => {
+        const jira = j2m.to_jira('Issue keys ABC~~1234~~DEF should not change.');
+        jira.should.eql('Issue keys ABC~~1234~~DEF should not change.');
+    });
+    it('should convert underline h1 and h2 independently from hash headers', () => {
+        const jira = j2m.to_jira('# Header one\n\nHeader two\n----------');
+        jira.should.eql('h1. Header one\n\nh2. Header two');
+    });
+    it('should convert mixed nested markdown lists', () => {
+        const jira = j2m.to_jira('* root\n  * child\n   1. ordered child\n      1. ordered grandchild');
+        jira.should.eql('* root\n** child\n## ordered child\n### ordered grandchild');
+    });
+    it('should keep fenced code blocks without syntax as unnamed jira code blocks', () => {
+        const jira = j2m.to_jira('```\nline 1\nline 2\n```');
+        jira.should.eql('{code}\nline 1\nline 2\n{code}');
+    });
+    it('should normalize markdown image alt text to unnamed jira image syntax', () => {
+        const jira = j2m.to_jira('![Alt text](http://example.com/img.png)');
+        jira.should.eql('!http://example.com/img.png!');
+    });
 });

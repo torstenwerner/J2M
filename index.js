@@ -56,7 +56,7 @@ class J2M {
                 // Citations (buggy)
                 // .replace(/\?\?((?:.[^?]|[^?].)+)\?\?/g, '<cite>$1</cite>')
                 // Inserts
-                .replace(/\+([^+]*)\+/g, '<ins>$1</ins>')
+                .replace(/\+([^+|\n]*)\+/g, '<ins>$1</ins>')
                 // Superscript
                 .replace(/\^([^^]*)\^/g, '<sup>$1</sup>')
                 // Subscript
@@ -120,20 +120,20 @@ class J2M {
             str
                 // Tables
                 .replace(
-                    /^\n((?:\|.*?)+\|)[ \t]*\n((?:\|\s*?-{3,}\s*?)+\|)[ \t]*\n((?:(?:\|.*?)+\|[ \t]*\n)*)$/gm,
+                    /(?:^|\n)((?:\|.*?)+\|)[ \t]*\n((?:\|\s*?-{3,}\s*?)+\|)[ \t]*\n((?:(?:\|.*?)+\|[ \t]*\n?)*)/gm,
                     (match, headerLine, separatorLine, rowstr) => {
                         const headers = headerLine.match(/[^|]+(?=\|)/g);
                         const separators = separatorLine.match(/[^|]+(?=\|)/g);
                         if (headers.length !== separators.length) return match;
 
-                        const rows = rowstr.split('\n');
-                        if (rows.length === 2 && headers.length === 1)
+                        const rows = rowstr.split('\n').filter((row) => row.trim().length > 0);
+                        if (rows.length === 1 && headers.length === 1)
                             // Panel
-                            return `{panel:title=${headers[0].trim()}}\n${rowstr
-                                .replace(/^\|(.*)[ \t]*\|/, '$1')
+                            return `{panel:title=${headers[0].trim()}}\n${rows[0]
+                                .replace(/^\|(.*)[ \t]*\|$/, '$1')
                                 .trim()}\n{panel}\n`;
 
-                        return `||${headers.join('||')}||\n${rowstr}`;
+                        return `||${headers.join('||')}||\n${rows.join('\n')}\n`;
                     }
                 )
                 // Bold, Italic, and Combined (bold+italic)
@@ -192,7 +192,7 @@ class J2M {
                 // Named Link
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '[$1|$2]')
                 // Un-Named Link
-                .replace(/<([^>]+)>/g, '[$1]')
+                .replace(/<((?:https?|ftp):\/\/[^>]+)>/g, '[$1]')
                 // Single Paragraph Blockquote
                 .replace(/^>/gm, 'bq.')
         );
