@@ -61,8 +61,10 @@ class J2M {
                 .replace(/\^([^^]*)\^/g, '<sup>$1</sup>')
                 // Subscript
                 .replace(/~([^~]*)~/g, '<sub>$1</sub>')
+                // Horizontal rule
+                .replace(/^[ \t]*----+[ \t]*$/gm, '\n---\n')
                 // Strikethrough
-                .replace(/(\s+)-(\S+.*?\S)-(\s+)/g, '$1~~$2~~$3')
+                .replace(/(\s+)-(?=\S*\w)(\S+.*?\S)-(\s+)/g, '$1~~$2~~$3')
                 // Code Block
                 .replace(
                     /\{code(:([a-z]+))?([:|]?(title|borderStyle|borderColor|borderWidth|bgColor|titleBGColor)=.+?)*\}([^]*?)\n?\{code\}/gm,

@@ -175,4 +175,8 @@ describe('to_markdown', () => {
         const markdown = j2m.to_markdown('{noformat}\nline 1\nline 2\n{noformat}');
         markdown.should.eql('```\nline 1\nline 2\n```');
     });
+    it('should convert horizontal rules', () => {
+        const markdown = j2m.to_markdown('text\n----\nmore text');
+        markdown.should.eql('text\n\n---\n\nmore text');
+    });
 });
